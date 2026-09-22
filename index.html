@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowverse - GST Invoice Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- html2pdf library for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+  <!-- Top App Navigation & Controls (Hidden in Print/PDF) -->
+  <header class="app-toolbar no-print">
+    <div class="toolbar-brand">
+      <img src="FLOWVERSE_COLOR.svg" alt="Flowverse" class="toolbar-logo" />
+      <span class="toolbar-title">GST Billing Portal</span>
+    </div>
+    <div class="toolbar-actions">
+      <button type="button" id="btn-add-item" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add Line Item
+      </button>
+      <button type="button" id="btn-history" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        History
+      </button>
+      <button type="button" id="btn-new-invoice" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+        New Invoice
+      </button>
+      <button type="button" id="btn-print" class="btn btn-outline">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print
+      </button>
+      <button type="button" id="btn-generate-pdf" class="btn btn-primary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download PDF & Save
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Area -->
+  <main class="app-workspace">
+    <!-- Quick Settings / Helper Banner (Hidden in Print) -->
+    <div class="workspace-tip no-print">
+      <span>💡 <strong>Live Interactive Editor:</strong> Enter the client name, edit line item descriptions, and enter taxable amounts. CGST (9%), SGST (9%), Total, and Words auto-calculate live.</span>
+      <div class="tip-actions">
+        <label class="seq-label">
+          Next Invoice #: 
+          <input type="text" id="seq-override" class="seq-input" title="Click to override counter sequence if needed" />
+        </label>
+      </div>
+    </div>
+
+    <!-- The Exact Printable Invoice Canvas (A4 Dimensions) -->
+    <div class="invoice-container">
+      <div id="invoice-sheet" class="invoice-sheet">
+        
+        <!-- Top Header: Logo + Metadata -->
+        <div class="invoice-header">
+          <div class="header-left">
+            <div class="logo-wrapper">
+              <img src="FLOWVERSE_COLOR.svg" alt="Flowverse Logo" class="invoice-logo" />
+            </div>
+            <div class="header-meta-list">
+              <div class="meta-row">
+                <span class="meta-label">Invoice#</span>
+                <span class="meta-value" id="display-invoice-no">001</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Invoice Date</span>
+                <span class="meta-value" id="display-invoice-date">SEP 22, 2026</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Due Date</span>
+                <span class="meta-value" id="display-due-date">SEP 23, 2026</span>
+              </div>
+            </div>
+          </div>
+          <div class="header-right">
+            <h1 class="invoice-title">Invoice</h1>
+          </div>
+        </div>
+
+        <!-- Billed By / Billed To Section -->
+        <div class="party-cards-grid">
+          <!-- Billed By Card (Constant, not editable) -->
+          <div class="party-card billed-by-card">
+            <h2 class="party-card-title">Billed by</h2>
+            <div class="party-company-name">Flowverse Tech (OPC) Pvt Ltd</div>
+            <div class="party-address">
+              Door No.12, Shop No.FF 11, Vaniga Valagam of Nanganallur Cooperative Building Society Ltd, 1st Main Road, Nanganallur, Chennai - 600061
+            </div>
+            <div class="party-tax-ids">
+              <div class="tax-id-row">
+                <span class="tax-label">GSTIN</span>
+                <span class="tax-val">33AAHCF1264L1ZL</span>
+              </div>
+              <div class="tax-id-row">
+                <span class="tax-label">PAN</span>
+                <span class="tax-val">AAHCF1364L</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Billed To Card (Editable Company/Person Name) -->
+          <div class="party-card billed-to-card">
+            <h2 class="party-card-title">Billed to</h2>
+            <div class="billed-to-field">
+              <input 
+                type="text" 
+                id="input-billed-to" 
+                class="inline-input client-name-input" 
+                placeholder="Enter Company or Person Name" 
+                value="" 
+                autocomplete="off"
+              />
+              <div id="print-billed-to" class="print-only-val"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Place / Country of Supply Row -->
+        <div class="supply-meta-row">
+          <div class="supply-col supply-left">
+            <span class="supply-label">Place of Supply</span>
+            <div class="supply-input-wrapper">
+              <input 
+                type="text" 
+                id="input-place-of-supply" 
+                class="inline-input supply-input" 
+                placeholder="e.g. Tamil Nadu" 
+                value="" 
+                autocomplete="off"
+              />
+              <span id="print-place-of-supply" class="print-only-val"></span>
+            </div>
+          </div>
+          <div class="supply-col supply-right">
+            <span class="supply-label">Country of Supply</span>
+            <div class="supply-input-wrapper">
+              <input 
+                type="text" 
+                id="input-country-of-supply" 
+                class="inline-input supply-input" 
+                value="India" 
+                autocomplete="off"
+              />
+              <span id="print-country-of-supply" class="print-only-val">India</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="items-table-wrapper">
+          <table class="items-table" id="items-table">
+            <thead>
+              <tr>
+                <th class="th-desc">Item #/Item description</th>
+                <th class="th-hsn">HSN</th>
+                <th class="th-qty">Qty.</th>
+                <th class="th-gst">GST</th>
+                <th class="th-taxable">Taxable Amount</th>
+                <th class="th-sgst">SGST</th>
+                <th class="th-cgst">CGST</th>
+                <th class="th-amount">Amount</th>
+                <th class="th-action no-print"></th>
+              </tr>
+            </thead>
+            <tbody id="items-tbody">
+              <!-- Item rows injected dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- In-Canvas Add Line Button (Hidden in Print/PDF) -->
+        <div class="table-actions no-print">
+          <button type="button" id="btn-add-item-table" class="btn btn-dashed">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            + Add Line Item
+          </button>
+        </div>
+
+        <!-- Totals & Words Section -->
+        <div class="summary-section">
+          <div class="totals-block">
+            <div class="totals-row">
+              <span class="totals-label">Sub Total</span>
+              <span class="totals-value" id="display-subtotal">₹ 0.00</span>
+            </div>
+            <div class="totals-row">
+              <span class="totals-label">CGST (9%)</span>
+              <span class="totals-value" id="display-cgst">₹ 0.00</span>
+            </div>
+            <div class="totals-row">
+              <span class="totals-label">SGST (9%)</span>
+              <span class="totals-value" id="display-sgst">₹ 0.00</span>
+            </div>
+            <div class="totals-row grand-total-row">
+              <span class="grand-total-label">Total</span>
+              <span class="grand-total-value" id="display-grand-total">₹ 0.00</span>
+            </div>
+            
+            <div class="words-block">
+              <div class="words-label">Invoice Total (in words)</div>
+              <div class="words-value" id="display-total-words">Zero Rupees Only</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Footer -->
+        <footer class="invoice-footer">
+          <div class="footer-enquiry">
+            For any enquiries, email us on <strong>admin.flowverse@gmail.com</strong>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- History Drawer Modal -->
+  <div id="history-modal" class="modal no-print" aria-hidden="true">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Saved Invoices History</h3>
+        <button type="button" class="btn-icon-close" id="btn-close-history" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="history-list-empty" class="history-empty">No invoices saved yet in this browser.</div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-clear-history">Clear History</button>
+        <button type="button" class="btn btn-primary" id="btn-close-history-2">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast no-print" role="alert" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
