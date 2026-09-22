@@ -81,9 +81,7 @@ function padZero(num, length = 3) {
   return String(num).padStart(length, '0');
 }
 
-// ==========================================================================
-// Supabase Database Connection Setup
-// ==========================================================================
+
 function initSupabaseClient() {
   // Read from window.ENV (config.js) first, fallback to localStorage
   const envUrl = (window.ENV && window.ENV.SUPABASE_URL) ? window.ENV.SUPABASE_URL.trim() : '';
