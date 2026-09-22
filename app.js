@@ -1,13 +1,4 @@
-/**
- * Flowverse GST Invoice Generator
- * Supabase DB Integration + Local Persistence, Auto-increment Invoice Number,
- * Unique Product IDs, Fixed HSN 9983, Billed To Address, 9% CGST + 9% SGST calculations,
- * Indian Currency & Words Engine, and A4 PDF export.
- */
 
-// ==========================================================================
-// Constants & Config
-// ==========================================================================
 const STORAGE_KEYS = {
   SUPABASE_URL: 'flowverse_supabase_url',
   SUPABASE_KEY: 'flowverse_supabase_key',
