@@ -17,6 +17,8 @@
   --color-primary: #101828;
   --color-accent: #2563eb;
   --color-danger: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
   --shadow-sheet: 0 12px 40px -8px rgba(0, 0, 0, 0.09), 0 0 1px rgba(0, 0, 0, 0.12);
   --shadow-popover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --radius-sm: 4px;
@@ -53,7 +55,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 28px;
+  padding: 11px 28px;
   background: rgba(17, 24, 39, 0.94);
   backdrop-filter: blur(12px);
   color: #ffffff;
@@ -64,28 +66,61 @@ body {
 .toolbar-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .toolbar-logo {
-  height: 30px;
+  height: 28px;
   width: auto;
   filter: brightness(0) invert(1);
 }
 
 .toolbar-title {
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   color: #f3f4f6;
   border-left: 1px solid rgba(255, 255, 255, 0.2);
-  padding-left: 14px;
+  padding-left: 12px;
+}
+
+/* DB Status Pill */
+.db-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.db-status-pill.connected {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.db-status-pill.disconnected {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
 }
 
 .toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 /* Buttons */
@@ -93,11 +128,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  padding: 8px 16px;
+  padding: 7px 14px;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
@@ -106,8 +141,8 @@ body {
 }
 
 .btn .icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .btn-primary {
@@ -164,14 +199,14 @@ body {
    ========================================================================== */
 .app-workspace {
   flex: 1;
-  padding: 24px 20px 60px 20px;
+  padding: 20px 20px 60px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .workspace-tip {
-  max-width: 820px;
+  max-width: 840px;
   width: 100%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -185,6 +220,14 @@ body {
   font-size: 12.5px;
   color: #475569;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.workspace-tip code {
+  background: #f1f5f9;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .tip-actions {
@@ -225,7 +268,7 @@ body {
 .invoice-sheet {
   background: var(--bg-sheet);
   width: 100%;
-  max-width: 820px;
+  max-width: 840px;
   min-height: 1120px;
   padding: 44px 44px 40px 44px;
   box-shadow: var(--shadow-sheet);
@@ -309,17 +352,17 @@ body {
 .party-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  min-height: 165px;
+  padding: 18px 20px;
+  min-height: 175px;
   display: flex;
   flex-direction: column;
 }
 
 .party-card-title {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   letter-spacing: -0.2px;
 }
 
@@ -327,25 +370,27 @@ body {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .party-address {
   font-size: 12px;
   line-height: 1.45;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   flex: 1;
+  white-space: pre-line;
 }
 
 .party-tax-ids {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .tax-id-row {
   display: flex;
+  align-items: center;
   font-size: 12px;
 }
 
@@ -365,9 +410,75 @@ body {
   flex-direction: column;
 }
 
-.billed-to-field {
-  margin-top: 4px;
+.billed-to-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   flex: 1;
+}
+
+/* Inline Inputs */
+.inline-input {
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-main);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.inline-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  background: #ffffff;
+}
+
+.client-name-input {
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-color: #cbd5e1;
+  color: var(--text-main);
+}
+
+.client-address-input {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #4b5563;
+  resize: vertical;
+  min-height: 48px;
+}
+
+.billed-to-tax-inputs {
+  margin-top: 4px;
+}
+
+.tax-input {
+  padding: 2px 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  max-width: 140px;
+}
+
+.client-name-input::placeholder,
+.client-address-input::placeholder,
+.tax-input::placeholder {
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.supply-input {
+  font-weight: 700;
+  width: 150px;
+  padding: 4px 8px;
+}
+
+.print-only-val {
+  display: none;
 }
 
 /* Place / Country of Supply */
@@ -376,7 +487,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0 4px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
   font-size: 12.5px;
 }
 
@@ -393,52 +504,6 @@ body {
 
 .supply-input-wrapper {
   display: inline-block;
-}
-
-/* Inline Inputs (for interactive mode) */
-.inline-input {
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--text-main);
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-
-.inline-input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-  background: #ffffff;
-}
-
-.client-name-input {
-  font-size: 14px;
-  font-weight: 700;
-  padding: 8px 12px;
-  background: #ffffff;
-  border-color: #cbd5e1;
-  color: var(--text-main);
-}
-
-.client-name-input::placeholder {
-  font-weight: 400;
-  color: #94a3b8;
-}
-
-.supply-input {
-  font-weight: 700;
-  width: 150px;
-  padding: 4px 8px;
-}
-
-.print-only-val {
-  display: none;
-  font-weight: 700;
-  color: var(--text-main);
 }
 
 /* ==========================================================================
@@ -461,32 +526,34 @@ body {
 }
 
 .items-table thead th {
-  padding: 10px 8px;
+  padding: 10px 6px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 0.1px;
+  white-space: nowrap;
 }
 
 .items-table thead th:first-child {
   border-top-left-radius: var(--radius-sm);
-  padding-left: 12px;
+  padding-left: 10px;
 }
 
 .items-table thead th:nth-last-child(2) {
   border-top-right-radius: var(--radius-sm);
-  padding-right: 12px;
+  padding-right: 10px;
 }
 
 /* Column Widths & Alignments */
-.th-desc, .td-desc { text-align: left; width: 32%; }
+.th-desc, .td-desc { text-align: left; width: 25%; }
+.th-pid, .td-pid { text-align: center; width: 9%; }
 .th-hsn, .td-hsn { text-align: center; width: 6%; }
 .th-qty, .td-qty { text-align: center; width: 5%; }
 .th-gst, .td-gst { text-align: center; width: 5%; }
-.th-taxable, .td-taxable { text-align: right; width: 14%; }
-.th-sgst, .td-sgst { text-align: right; width: 11%; }
-.th-cgst, .td-cgst { text-align: right; width: 11%; }
-.th-amount, .td-amount { text-align: right; width: 14%; }
-.th-action, .td-action { text-align: center; width: 28px; padding: 2px !important; }
+.th-taxable, .td-taxable { text-align: right; width: 13%; white-space: nowrap; }
+.th-sgst, .td-sgst { text-align: right; width: 10%; white-space: nowrap; }
+.th-cgst, .td-cgst { text-align: right; width: 10%; white-space: nowrap; }
+.th-amount, .td-amount { text-align: right; width: 13%; white-space: nowrap; }
+.th-action, .td-action { text-align: center; width: 26px; padding: 2px !important; }
 
 .items-table tbody tr {
   border-bottom: 1px solid #f0f2f5;
@@ -498,41 +565,41 @@ body {
 }
 
 .items-table tbody td {
-  padding: 10px 8px;
+  padding: 10px 6px;
   vertical-align: middle;
   color: var(--text-main);
 }
 
 .items-table tbody td:first-child {
-  padding-left: 12px;
+  padding-left: 10px;
 }
 
 .items-table tbody td:nth-last-child(2) {
-  padding-right: 12px;
+  padding-right: 10px;
 }
 
 /* Table Row Inputs */
 .item-desc-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   width: 100%;
 }
 
 .item-index-num {
   font-weight: 600;
   color: var(--text-main);
-  min-width: 16px;
-  font-size: 12.5px;
+  min-width: 14px;
+  font-size: 12px;
 }
 
 .table-input {
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-main);
   border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
-  padding: 5px 6px;
+  padding: 4px 6px;
   background: #ffffff;
   transition: all 0.15s ease;
   width: 100%;
@@ -550,23 +617,33 @@ body {
   font-weight: 500;
 }
 
-.input-hsn {
+.input-pid {
   width: 100%;
-  max-width: 46px;
+  max-width: 68px;
   text-align: center;
+  font-weight: 600;
+  font-size: 11px;
+  color: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
 }
 
 .input-qty {
   width: 100%;
-  max-width: 42px;
+  max-width: 40px;
   text-align: center;
 }
 
 .input-taxable {
   width: 100%;
-  max-width: 96px;
+  max-width: 90px;
   text-align: right;
   font-weight: 600;
+}
+
+.hsn-cell-text {
+  font-weight: 600;
+  color: #475569;
 }
 
 /* Chrome, Safari, Edge, Opera: Remove spin button on number inputs */
@@ -586,7 +663,7 @@ input[type=number] {
   border: none;
   color: #94a3b8;
   cursor: pointer;
-  padding: 4px;
+  padding: 3px;
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
@@ -600,8 +677,8 @@ input[type=number] {
 }
 
 .btn-del-row .icon {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 
 .table-actions {
@@ -642,6 +719,7 @@ input[type=number] {
   color: var(--text-main);
   text-align: right;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .grand-total-row {
@@ -663,6 +741,7 @@ input[type=number] {
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.3px;
+  white-space: nowrap;
 }
 
 .words-block {
@@ -707,7 +786,7 @@ input[type=number] {
 }
 
 /* ==========================================================================
-   Modal Dialog (Invoice History)
+   Modal Dialogs (DB Settings & Invoice History)
    ========================================================================== */
 .modal {
   position: fixed;
@@ -767,9 +846,21 @@ input[type=number] {
 }
 
 .modal-title {
-  font-size: 16px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-title .badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
 }
 
 .btn-icon-close {
@@ -791,6 +882,59 @@ input[type=number] {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+}
+
+.db-guide-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: #166534;
+  margin-bottom: 18px;
+  line-height: 1.45;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.schema-hint {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 12px;
+}
+
+.schema-hint code {
+  background: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 .history-empty {
@@ -955,6 +1099,14 @@ input[type=number] {
   }
 
   .print-only-val {
+    display: block !important;
+  }
+
+  .print-only-val.tax-val {
+    display: inline-block !important;
+  }
+
+  .print-inline {
     display: inline-block !important;
   }
 
@@ -974,6 +1126,10 @@ input[type=number] {
 }
 
 .pdf-export-mode .print-only-val {
+  display: block !important;
+}
+
+.pdf-export-mode .print-only-val.tax-val {
   display: inline-block !important;
 }
 

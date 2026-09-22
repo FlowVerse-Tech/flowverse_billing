@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- html2pdf library for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
@@ -17,11 +19,19 @@
     <div class="toolbar-brand">
       <img src="FLOWVERSE_COLOR.svg" alt="Flowverse" class="toolbar-logo" />
       <span class="toolbar-title">GST Billing Portal</span>
+      <div id="db-status-pill" class="db-status-pill disconnected" title="Click to configure Supabase Database">
+        <span class="status-dot"></span>
+        <span id="db-status-text">Local Mode</span>
+      </div>
     </div>
     <div class="toolbar-actions">
+      <button type="button" id="btn-db-settings" class="btn btn-secondary" title="Configure Supabase Cloud Database">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+        Database
+      </button>
       <button type="button" id="btn-add-item" class="btn btn-secondary">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Add Line Item
+        Add Item
       </button>
       <button type="button" id="btn-history" class="btn btn-secondary">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -29,7 +39,7 @@
       </button>
       <button type="button" id="btn-new-invoice" class="btn btn-secondary">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-        New Invoice
+        New
       </button>
       <button type="button" id="btn-print" class="btn btn-outline">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -37,7 +47,7 @@
       </button>
       <button type="button" id="btn-generate-pdf" class="btn btn-primary">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download PDF & Save
+        Save & PDF
       </button>
     </div>
   </header>
@@ -46,11 +56,11 @@
   <main class="app-workspace">
     <!-- Quick Settings / Helper Banner (Hidden in Print) -->
     <div class="workspace-tip no-print">
-      <span>💡 <strong>Live Interactive Editor:</strong> Enter the client name, edit line item descriptions, and enter taxable amounts. CGST (9%), SGST (9%), Total, and Words auto-calculate live.</span>
+      <span>💡 <strong>Live GST Billing:</strong> Fill client name & address. Each item has a unique Product ID, fixed HSN <code>9983</code>, and auto-calculates 9% CGST + 9% SGST.</span>
       <div class="tip-actions">
         <label class="seq-label">
           Next Invoice #: 
-          <input type="text" id="seq-override" class="seq-input" title="Click to override counter sequence if needed" />
+          <input type="text" id="seq-override" class="seq-input" title="Override invoice counter sequence if needed" />
         </label>
       </div>
     </div>
@@ -106,19 +116,40 @@
             </div>
           </div>
 
-          <!-- Billed To Card (Editable Company/Person Name) -->
+          <!-- Billed To Card (Editable Company/Person Name + Address + Tax IDs) -->
           <div class="party-card billed-to-card">
             <h2 class="party-card-title">Billed to</h2>
-            <div class="billed-to-field">
+            <div class="billed-to-content">
               <input 
                 type="text" 
                 id="input-billed-to" 
                 class="inline-input client-name-input" 
-                placeholder="Enter Company or Person Name" 
+                placeholder="Company or Person Name" 
                 value="" 
                 autocomplete="off"
               />
-              <div id="print-billed-to" class="print-only-val"></div>
+              <div id="print-billed-to" class="print-only-val party-company-name"></div>
+
+              <textarea 
+                id="input-billed-to-address" 
+                class="inline-input client-address-input" 
+                placeholder="Client Address (Street, City, State, PIN)..." 
+                rows="2"
+              ></textarea>
+              <div id="print-billed-to-address" class="print-only-val party-address"></div>
+
+              <div class="party-tax-ids billed-to-tax-inputs">
+                <div class="tax-id-row">
+                  <span class="tax-label">GSTIN</span>
+                  <input type="text" id="input-billed-to-gstin" class="inline-input tax-input" placeholder="Optional GSTIN" />
+                  <span id="print-billed-to-gstin" class="print-only-val tax-val"></span>
+                </div>
+                <div class="tax-id-row">
+                  <span class="tax-label">PAN</span>
+                  <input type="text" id="input-billed-to-pan" class="inline-input tax-input" placeholder="Optional PAN" />
+                  <span id="print-billed-to-pan" class="print-only-val tax-val"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -132,7 +163,7 @@
                 type="text" 
                 id="input-place-of-supply" 
                 class="inline-input supply-input" 
-                placeholder="e.g. Tamil Nadu" 
+                placeholder="e.g. Karnataka" 
                 value="" 
                 autocomplete="off"
               />
@@ -160,6 +191,7 @@
             <thead>
               <tr>
                 <th class="th-desc">Item #/Item description</th>
+                <th class="th-pid">Product ID</th>
                 <th class="th-hsn">HSN</th>
                 <th class="th-qty">Qty.</th>
                 <th class="th-gst">GST</th>
@@ -171,7 +203,7 @@
               </tr>
             </thead>
             <tbody id="items-tbody">
-              <!-- Item rows injected dynamically by JS -->
+              <!-- Dynamic item rows injected by JS -->
             </tbody>
           </table>
         </div>
@@ -180,7 +212,7 @@
         <div class="table-actions no-print">
           <button type="button" id="btn-add-item-table" class="btn btn-dashed">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            + Add Line Item
+            + Add Another Item
           </button>
         </div>
 
@@ -222,18 +254,51 @@
     </div>
   </main>
 
-  <!-- History Drawer Modal -->
-  <div id="history-modal" class="modal no-print" aria-hidden="true">
-    <div class="modal-backdrop" id="modal-backdrop"></div>
+  <!-- Database Settings Modal -->
+  <div id="db-modal" class="modal no-print" aria-hidden="true">
+    <div class="modal-backdrop" id="db-modal-backdrop"></div>
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Saved Invoices History</h3>
+        <h3 class="modal-title">Supabase Database Configuration</h3>
+        <button type="button" class="btn-icon-close" id="btn-close-db-modal" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="db-guide-box">
+          <p>Connect your Supabase project to enable cloud database persistence, multi-device access, and synchronized auto-incrementing invoice numbering.</p>
+        </div>
+        <div class="form-group">
+          <label for="input-supabase-url" class="form-label">Supabase Project URL</label>
+          <input type="text" id="input-supabase-url" class="form-control" placeholder="https://your-project.supabase.co" />
+        </div>
+        <div class="form-group">
+          <label for="input-supabase-key" class="form-label">Supabase Anon Public API Key</label>
+          <input type="password" id="input-supabase-key" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+        </div>
+        <div class="schema-hint">
+          <span>Make sure you've executed the <code>supabase_schema.sql</code> script in your Supabase SQL Editor.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-disconnect-db">Disconnect (Use Local)</button>
+        <button type="button" class="btn btn-primary" id="btn-save-db-config">Save & Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Drawer Modal -->
+  <div id="history-modal" class="modal no-print" aria-hidden="true">
+    <div class="modal-backdrop" id="history-modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Saved Invoices History <span id="history-source-badge" class="badge"></span></h3>
         <button type="button" class="btn-icon-close" id="btn-close-history" aria-label="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       <div class="modal-body">
-        <div id="history-list-empty" class="history-empty">No invoices saved yet in this browser.</div>
+        <div id="history-list-empty" class="history-empty">No invoices saved yet.</div>
         <div id="history-list" class="history-list"></div>
       </div>
       <div class="modal-footer">
@@ -246,6 +311,8 @@
   <!-- Notification Toast -->
   <div id="toast" class="toast no-print" role="alert" aria-live="polite"></div>
 
+  <!-- Environment Config & Main Application Script -->
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
